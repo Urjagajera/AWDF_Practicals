@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { contacts, profile } from '../data/profile';
 
 const EMAIL = contacts.find((c) => c.label === 'Email')!.href.replace('mailto:', '');
+const MAX = 500;
 
 export default function Contact() {
   // Controlled inputs: React state is the single source of truth for what is typed.
@@ -62,9 +63,17 @@ export default function Contact() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={5}
+              maxLength={MAX}
+              aria-describedby="message-count"
               className="mt-2 w-full resize-y rounded-xl border border-line bg-paper-raised px-4 py-3 outline-none transition focus:border-rust"
               placeholder="Hi Urja, …"
             />
+            <span
+              id="message-count"
+              className={`mt-1 block text-right font-mono text-[12px] ${message.length > MAX * 0.9 ? 'text-rust' : 'text-ink-mute'}`}
+            >
+              {message.length} / {MAX}
+            </span>
           </label>
 
           <button
