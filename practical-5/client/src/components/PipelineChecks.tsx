@@ -10,6 +10,8 @@ interface Check {
 const checks: Check[] = [
   { label: 'POST without a title', expect: 400, run: () => call('POST', '/tasks', { description: 'no title' }) },
   { label: 'POST as text/plain', expect: 415, run: () => call('POST', '/tasks', 'title=hi', { contentType: 'text/plain' }) },
+  { label: 'POST priority "urgent"', expect: 400, run: () => call('POST', '/tasks', { title: 'x', priority: 'urgent' }) },
+  { label: 'GET unknown ObjectId', expect: 404, run: () => call('GET', '/tasks/000000000000000000000000') },
   { label: 'PUT /tasks/abc', expect: 400, run: () => call('PUT', '/tasks/abc', { completed: true }) },
   { label: 'DELETE unknown ObjectId', expect: 404, run: () => call('DELETE', '/tasks/000000000000000000000000') },
   { label: 'GET /unknown-route', expect: 404, run: () => call('GET', '/unknown-route') },

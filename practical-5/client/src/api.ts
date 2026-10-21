@@ -1,11 +1,15 @@
 // In the combined landing app this points at /api/p5; on its own it uses the Vite proxy at /api.
 export const BASE_URL: string = import.meta.env.VITE_P5_API_URL ?? '/api';
 
+export const PRIORITIES = ['low', 'medium', 'high'] as const;
+export type Priority = (typeof PRIORITIES)[number];
+
 export interface Task {
   _id: string;
   title: string;
   description: string;
   completed: boolean;
+  priority: Priority;
   createdAt: string;
 }
 

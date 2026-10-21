@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { call, type Task } from '../api';
+import { call, PRIORITIES, type Priority, type Task } from '../api';
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<Priority>('medium');
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -21,7 +22,7 @@ export default function TaskBoard() {
 
   const create = async (e: FormEvent) => {
     e.preventDefault();
-    const res = await call('POST', '/tasks', { title, description });
+    const res = await call('POST', '/tasks', { title, description, priority });
     if (res.ok) {
       setTitle('');
       setDescription('');
@@ -48,7 +49,7 @@ export default function TaskBoard() {
         </button>
       </header>
 
-      <form onSubmit={create} className="grid gap-2 border-b border-line p-5 sm:grid-cols-[1fr_1fr_auto]">
+      <form onSubmit={create} className="grid gap-2 border-b border-line p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -61,6 +62,18 @@ export default function TaskBoard() {
           placeholder="Description (optional)"
           className="rounded-xl border border-line bg-paper px-3.5 py-2.5 text-[14.5px] outline-none focus:border-rust"
         />
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as Priority)}
+          aria-label="Priority"
+          className="rounded-xl border border-line bg-paper px-3 py-2.5 text-[14.5px] outline-none focus:border-rust"
+        >
+          {PRIORITIES.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="rounded-xl bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper hover:bg-rust hover:text-rust-ink">
           POST
         </button>
@@ -81,7 +94,14 @@ export default function TaskBoard() {
             <div className="min-w-0 flex-1">
               <p className={`font-medium ${t.completed ? 'text-ink-mute line-through' : ''}`}>{t.title}</p>
               {t.description && <p className="text-[14px] text-ink-soft">{t.description}</p>}
-              <p className="mt-0.5 font-mono text-[11.5px] text-ink-mute">#{t._id.slice(-6)}</p>
+              <p className="mt-1 flex items-center gap-2 font-mono text-[11.5px] text-ink-mute">
+                <span className={`rounded px-1.5 py-px uppercase ${t.priority === 'high' ? 'bg-rust-soft text-rust' : 'bg-paper-sunk'}`}>
+                  {t.priority}
+                </span>
+                <button type="button" onClick={() => call('GET', `/tasks/${t._id}`)} className="hover:text-ink" title="GET /tasks/:id">
+                  #{t._id.slice(-6)}
+                </button>
+              </p>
             </div>
             <button type="button" onClick={() => remove(t)} className="text-[13px] text-ink-mute hover:text-rust">
               DELETE

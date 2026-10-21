@@ -14,11 +14,22 @@ export const getAllTasks: RequestHandler = async (_req, res, next) => {
   }
 };
 
+// GET /tasks/:id → 200, or 404 when the id does not exist
+export const getTask: RequestHandler = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ error: `Task ${req.params.id} not found` });
+    res.status(200).json(task);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // POST /tasks → 201, or 400 from schema validation
 export const createTask: RequestHandler = async (req, res, next) => {
   try {
-    const { title, description, completed } = req.body;
-    const task = await Task.create({ title, description, completed });
+    const { title, description, completed, priority } = req.body;
+    const task = await Task.create({ title, description, completed, priority });
     res.status(201).json(task);
   } catch (err) {
     next(err);
@@ -28,10 +39,10 @@ export const createTask: RequestHandler = async (req, res, next) => {
 // PUT /tasks/:id → 200, or 404 when the task does not exist
 export const updateTask: RequestHandler = async (req, res, next) => {
   try {
-    const { title, description, completed } = req.body;
+    const { title, description, completed, priority } = req.body;
     const task = await Task.findByIdAndUpdate(
       req.params.id,
-      { title, description, completed },
+      { title, description, completed, priority },
       // Return the updated document and apply schema validation to the update too.
       { new: true, runValidators: true },
     );
