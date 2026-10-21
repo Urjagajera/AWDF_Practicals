@@ -1,0 +1,21 @@
+{
+  "name": "@awdf/p4-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Practical 4 — Task Management REST API (Express, in-memory)",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^18.19.50",
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4"
+  }
+}
