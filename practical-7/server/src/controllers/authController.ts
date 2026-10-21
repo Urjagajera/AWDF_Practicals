@@ -39,3 +39,14 @@ export const login: RequestHandler = async (req, res, next) => {
     next(err);
   }
 };
+
+// GET /auth/me → the logged-in user, from the id inside the verified token
+export const me: RequestHandler = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user!.id);
+    if (!user) return res.status(404).json({ error: 'User no longer exists' });
+    res.status(200).json({ user });
+  } catch (err) {
+    next(err);
+  }
+};

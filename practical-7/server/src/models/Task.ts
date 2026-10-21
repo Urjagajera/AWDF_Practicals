@@ -4,6 +4,8 @@ import { db } from '../db';
 export const PRIORITIES = ['low', 'medium', 'high'] as const;
 
 const taskSchema = new Schema({
+  // The user who created the task; every query filters on it.
+  owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   title: { type: String, required: [true, 'title is required'] },
   description: { type: String, default: '' },
   completed: { type: Boolean, default: false },
