@@ -5,6 +5,7 @@ import { notFound } from './middleware/notFound';
 import { errorHandler } from './middleware/errorHandler';
 import taskRoutes from './routes/tasks';
 import authRoutes from './routes/auth';
+import debugRoutes from './routes/debug';
 import { db } from './db';
 
 /** Closes this practical's MongoDB connection (used by tests and scripts). */
@@ -16,7 +17,8 @@ export function createApp() {
 
   // Pipeline: CORS → parse JSON → log → routes → 404 → error handler.
   // CORS lets the React dev server (localhost:5173) call this API on localhost:5000.
-  app.use(cors());
+  // X-Cache is exposed so a browser on another origin can read HIT / MISS.
+  app.use(cors({ exposedHeaders: ['X-Cache'] }));
   app.use(express.json());
   app.use(logger);
 
@@ -26,6 +28,7 @@ export function createApp() {
 
   app.use('/auth', authRoutes);
   app.use('/tasks', taskRoutes);
+  app.use('/debug', debugRoutes);
 
   // Demonstrates the error handler: anything passed to next(err) ends up there.
   app.get('/boom', (_req, _res, next) => {

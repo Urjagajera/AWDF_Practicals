@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { Task } from '../models/Task';
-import { cache, keys } from '../cache';
+import { cached, invalidateTasks, keys } from '../cache';
 
 // Every route here runs after `auth`, so req.user is set, and after `validate`, so req.body
 // only holds checked fields. Each query is scoped to the logged-in user's own tasks.
@@ -9,32 +9,26 @@ import { cache, keys } from '../cache';
 const owner = (req: Parameters<RequestHandler>[0]) => req.user!.id;
 const notFound = (id: string) => ({ error: `Task ${id} not found` });
 
-/** Every successful write drops the cached list, so a stale list is never served. */
-const invalidate = (userId: string) => cache.del(keys.allTasks(userId));
-
 // GET /tasks → 200, from the cache when possible
 export const getAllTasks: RequestHandler = async (req, res, next) => {
   try {
-    const key = keys.allTasks(owner(req));
-    const cached = cache.get(key);
-    if (cached) {
-      res.set('X-Cache', 'HIT');
-      return res.status(200).json(cached);
-    }
-
-    const tasks = await Task.find({ owner: owner(req) }).sort({ createdAt: -1 }).lean();
-    cache.set(key, tasks);
-    res.set('X-Cache', 'MISS');
+    const { value: tasks, hit } = await cached('list', keys.allTasks(owner(req)), () =>
+      Task.find({ owner: owner(req) }).sort({ createdAt: -1 }).lean(),
+    );
+    res.set('X-Cache', hit ? 'HIT' : 'MISS');
     res.status(200).json(tasks);
   } catch (err) {
     next(err);
   }
 };
 
-// GET /tasks/:id → 200, or 404 when it doesn't exist or belongs to someone else
+// GET /tasks/:id → 200, or 404; cached separately from the list
 export const getTask: RequestHandler = async (req, res, next) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, owner: owner(req) });
+    const { value: task, hit } = await cached('single', keys.task(owner(req), req.params.id), () =>
+      Task.findOne({ _id: req.params.id, owner: owner(req) }).lean(),
+    );
+    res.set('X-Cache', hit ? 'HIT' : 'MISS');
     if (!task) return res.status(404).json(notFound(req.params.id));
     res.status(200).json(task);
   } catch (err) {
@@ -46,7 +40,7 @@ export const getTask: RequestHandler = async (req, res, next) => {
 export const createTask: RequestHandler = async (req, res, next) => {
   try {
     const task = await Task.create({ ...req.body, owner: owner(req) });
-    invalidate(owner(req));
+    invalidateTasks(owner(req));
     res.status(201).json(task);
   } catch (err) {
     next(err);
@@ -61,7 +55,7 @@ export const updateTask: RequestHandler = async (req, res, next) => {
       runValidators: true,
     });
     if (!task) return res.status(404).json(notFound(req.params.id));
-    invalidate(owner(req));
+    invalidateTasks(owner(req), req.params.id);
     res.status(200).json(task);
   } catch (err) {
     next(err);
@@ -73,7 +67,7 @@ export const deleteTask: RequestHandler = async (req, res, next) => {
   try {
     const task = await Task.findOneAndDelete({ _id: req.params.id, owner: owner(req) });
     if (!task) return res.status(404).json(notFound(req.params.id));
-    invalidate(owner(req));
+    invalidateTasks(owner(req), req.params.id);
     res.status(200).json({ message: 'Task deleted', task });
   } catch (err) {
     next(err);

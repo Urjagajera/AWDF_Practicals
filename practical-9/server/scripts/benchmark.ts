@@ -1,11 +1,12 @@
 /**
  * Measures GET /tasks response times against the real app and database.
  *
- *   npx tsx scripts/benchmark.ts [runs=3] [tasks=2000]
+ *   npx tsx scripts/benchmark.ts [runs=3] [tasks=2000] [gapMs=0]
  *
  * Starts the app in-process on a free port, logs in a benchmark user (creating it and seeding
  * `tasks` documents on first use), then sends GET /tasks `runs` times in a row and prints each
- * response time and the X-Cache header (present once caching exists).
+ * response time and the X-Cache header (present once caching exists). `gapMs` waits between
+ * requests, to see entries expire (e.g. CACHE_TTL=2 with a 2500 ms gap).
  */
 import 'dotenv/config';
 import type { AddressInfo } from 'node:net';
@@ -15,6 +16,7 @@ import { Task } from '../src/models/Task';
 process.env.JWT_SECRET ??= 'benchmark-secret';
 const runs = Number(process.argv[2] ?? 3);
 const seedTo = Number(process.argv[3] ?? 2000);
+const gapMs = Number(process.argv[4] ?? 0);
 const EMAIL = 'benchmark@example.com';
 const PASSWORD = 'benchmark-password';
 
@@ -44,8 +46,9 @@ async function main() {
   }
   const count = await Task.countDocuments({ owner: user._id });
 
-  console.log(`GET /tasks × ${runs}  (${count} tasks for ${EMAIL})`);
+  console.log(`GET /tasks × ${runs}  (${count} tasks for ${EMAIL}, TTL ${process.env.CACHE_TTL ?? 60} s, gap ${gapMs} ms)`);
   for (let i = 1; i <= runs; i++) {
+    if (i > 1 && gapMs) await new Promise((r) => setTimeout(r, gapMs));
     const t0 = performance.now();
     const res = await fetch(`${base}/tasks`, { headers: { Authorization: `Bearer ${token}` } });
     const body = await res.arrayBuffer();

@@ -44,3 +44,24 @@ GET  /tasks               → [ A ]                      (hit)
 PUT  /tasks/:id {"title":"A renamed"} → 200            (cache dropped)
 GET  /tasks               → [ "A renamed" ]            (miss — never the stale "A")
 ```
+
+## TTL experiments (`CACHE_TTL=… npm run benchmark -- 3 2000 <gapMs>`)
+
+| TTL | Gap between requests | #1 | #2 | #3 |
+|---|---|---|---|---|
+| 60 s | 2.5 s | 65.7 ms MISS | 24.9 ms HIT | 25.3 ms HIT |
+| 2 s | 2.5 s | 57.6 ms MISS | 63.2 ms MISS | 67.7 ms MISS |
+| 2 s | 1 s | 57.6 ms MISS | 13.3 ms HIT | 63.3 ms MISS |
+
+A short TTL keeps data fresh even without invalidation, but the cache is rarely hit: with TTL 2 s and
+requests 2.5 s apart it never helps. A long TTL gives the most hits, and is safe here only because every
+write invalidates the entry; without invalidation it would mean up to 60 s of stale data.
+
+## In the browser (cache lab page, through the combined app's proxy, 1,000 tasks)
+
+| Mode | #1 | #2 | #3 |
+|---|---|---|---|
+| Cache on | 89.9 ms MISS | 24.9 ms HIT | 28.8 ms HIT |
+| Cache off | 61.7 ms MISS | 55.4 ms MISS | 42.5 ms MISS |
+
+"Write, then read": `POST /tasks → 201`, then `GET /tasks → X-Cache: MISS` with the new task in the list.
