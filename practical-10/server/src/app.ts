@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler';
 import taskRoutes from './routes/tasks';
 import authRoutes from './routes/auth';
 import debugRoutes from './routes/debug';
+import eventRoutes from './routes/events';
 import { db } from './db';
 import { registerListeners } from './events/listeners';
 
@@ -33,6 +34,7 @@ export function createApp() {
   app.use('/auth', authRoutes);
   app.use('/tasks', taskRoutes);
   app.use('/debug', debugRoutes);
+  app.use('/events', eventRoutes);
 
   // Demonstrates the error handler: anything passed to next(err) ends up there.
   app.get('/boom', (_req, _res, next) => {

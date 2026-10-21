@@ -80,7 +80,14 @@ export const deleteTask: RequestHandler = async (req, res, next) => {
     const task = await Task.findOneAndDelete({ _id: req.params.id, owner: owner(req) });
     if (!task) return res.status(404).json(notFound(req.params.id));
     invalidateTasks(owner(req), req.params.id);
+
+    const respondedAt = new Date().toISOString();
     res.status(200).json({ message: 'Task deleted', task });
+    taskEvents.emit('task-deleted', {
+      task: { _id: task._id.toString(), title: task.title, priority: task.priority },
+      user: req.user!.email,
+      respondedAt,
+    });
   } catch (err) {
     next(err);
   }
