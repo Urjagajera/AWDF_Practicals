@@ -1,6 +1,7 @@
 import express from 'express';
 import { logger } from './middleware/logger';
 import { errorHandler } from './middleware/errorHandler';
+import taskRoutes from './routes/tasks';
 
 /** Builds the app without listening, so server.ts and the combined repo server can both use it. */
 export function createApp() {
@@ -13,6 +14,8 @@ export function createApp() {
   app.get('/', (_req, res) => {
     res.json({ name: 'Task Management API', practical: 4 });
   });
+
+  app.use('/tasks', taskRoutes);
 
   // Demonstrates the error handler: anything passed to next(err) ends up there.
   app.get('/boom', (_req, _res, next) => {
