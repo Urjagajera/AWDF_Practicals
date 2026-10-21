@@ -104,3 +104,13 @@ export const createTask = (input: TaskInput) => request<Task>('/tasks', json('PO
 export const updateTask = (id: string, input: TaskInput) => request<Task>(`/tasks/${id}`, json('PUT', input));
 
 export const deleteTask = (id: string) => request<{ message: string; task: Task }>(`/tasks/${id}`, { method: 'DELETE' });
+
+export interface AiSuggestion {
+  description: string;
+  fallback: boolean;
+  message?: string;
+}
+
+/** Asks our own backend for a suggested description; the AI provider and its key stay on the server. */
+export const generateDescription = (title: string) =>
+  request<AiSuggestion>('/api/ai/generate-description', json('POST', { title }));
