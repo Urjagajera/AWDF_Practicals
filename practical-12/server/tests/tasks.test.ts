@@ -21,6 +21,6 @@ afterAll(async () => {
 
 test('GET /tasks returns 200', async () => {
   const res = await request(app).get('/tasks').set('Authorization', `Bearer ${token}`);
-  expect(res.statusCode).toBe(201); // deliberately wrong: GET returns 200
+  expect(res.statusCode).toBe(200);
   expect(Array.isArray(res.body)).toBe(true);
 });
