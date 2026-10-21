@@ -82,7 +82,8 @@ invalidates the same store.
 
 ## Errors met along the way
 
-- The first per-user key design cached `null` for unknown ids, which would hide a task created later with
-  that id until the TTL expired — "not found" results are now never cached.
+- The lab sheet's single `all_tasks` key would have mixed users' lists once Practical 7 made tasks
+  per-user; the key includes the user id for that reason. For the same kind of reason "not found" results
+  for `GET /tasks/:id` are never cached, so a lookup can't hide a task for the length of the TTL.
 - With only a handful of tasks, cached and uncached times were both 3–8 ms and the comparison showed
   nothing. Seeding 2,000 tasks (as the troubleshooting guide suggests) made the database read measurable.
