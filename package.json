@@ -1,0 +1,22 @@
+{
+  "name": "awdf-practicals",
+  "private": true,
+  "description": "ITUE301 Advanced Web Development Frameworks — Practicals 1 to 13",
+  "workspaces": [
+    "landing",
+    "server",
+    "practical-*/client",
+    "practical-*/server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,landing -c gray,yellow \"npm run dev -w server\" \"npm run dev -w landing\"",
+    "build": "npm run build -w landing",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
