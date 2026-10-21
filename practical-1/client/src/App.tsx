@@ -1,9 +1,16 @@
+import Header from './components/Header';
+import About from './components/About';
+import Skills from './components/Skills';
+import Footer from './components/Footer';
+import { contacts, profile, skills } from './data/profile';
+
 export default function App() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-24">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-rust">Practical 01</p>
-      <h1 className="mt-4 font-serif text-5xl">Student portfolio</h1>
-      <p className="mt-4 text-ink-soft">Vite + React + TypeScript + Tailwind is set up. Components come next.</p>
-    </main>
+    <div className="mx-auto w-[min(1040px,100%-32px)]">
+      <Header name={profile.name} role={profile.role} focus={profile.focus} />
+      <About bio={profile.bio} education={profile.education} internship={profile.internship} />
+      <Skills skillList={skills} />
+      <Footer name={profile.name} links={contacts} />
+    </div>
   );
 }
