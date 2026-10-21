@@ -3,6 +3,7 @@ import { auth } from '../middleware/auth';
 import { requireJson } from '../middleware/requireJson';
 import { validate } from '../middleware/validate';
 import { generateText } from '../ai/gemini';
+import { aiRateLimit } from '../middleware/aiRateLimit';
 
 const router = Router();
 
@@ -21,8 +22,9 @@ const promptFor = (title: string) =>
   ].join('\n');
 
 // POST /api/ai/generate-description { title } → { description, fallback: false }
+// 429 if the same user asked about the same title within the last minute.
 // On any AI failure the app keeps working: 200 { description: '', fallback: true, message }.
-router.post('/generate-description', requireJson, titleRules, async (req, res) => {
+router.post('/generate-description', requireJson, titleRules, aiRateLimit, async (req, res) => {
   const { title } = req.body as { title: string };
   try {
     const description = await generateText(promptFor(title));

@@ -7,6 +7,7 @@ import { createApp as p8 } from '../../practical-8/server/src/app';
 import { createApp as p9 } from '../../practical-9/server/src/app';
 import { createApp as p10 } from '../../practical-10/server/src/app';
 import { createApp as p11 } from '../../practical-11/server/src/app';
+import { createApp as p13 } from '../../practical-13/server/src/app';
 
 export interface Mount {
   n: number;
@@ -23,4 +24,5 @@ export const mounts: Mount[] = [
   { n: 9, create: p9 },
   { n: 10, create: p10 },
   { n: 11, create: p11 },
+  { n: 13, create: p13 },
 ];
