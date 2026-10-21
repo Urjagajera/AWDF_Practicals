@@ -30,12 +30,12 @@ export default function TaskBoard() {
   };
 
   const toggle = async (t: Task) => {
-    const res = await call('PUT', `/tasks/${t.id}`, { completed: !t.completed });
+    const res = await call('PUT', `/tasks/${t._id}`, { completed: !t.completed });
     if (res.ok) load();
   };
 
   const remove = async (t: Task) => {
-    const res = await call('DELETE', `/tasks/${t.id}`);
+    const res = await call('DELETE', `/tasks/${t._id}`);
     if (res.ok) load();
   };
 
@@ -70,7 +70,7 @@ export default function TaskBoard() {
 
       <ul className="divide-y divide-line">
         {tasks.map((t) => (
-          <li key={t.id} className="flex items-start gap-3 px-5 py-3.5">
+          <li key={t._id} className="flex items-start gap-3 px-5 py-3.5">
             <input
               type="checkbox"
               checked={t.completed}
@@ -81,7 +81,7 @@ export default function TaskBoard() {
             <div className="min-w-0 flex-1">
               <p className={`font-medium ${t.completed ? 'text-ink-mute line-through' : ''}`}>{t.title}</p>
               {t.description && <p className="text-[14px] text-ink-soft">{t.description}</p>}
-              <p className="mt-0.5 font-mono text-[11.5px] text-ink-mute">#{t.id}</p>
+              <p className="mt-0.5 font-mono text-[11.5px] text-ink-mute">#{t._id.slice(-6)}</p>
             </div>
             <button type="button" onClick={() => remove(t)} className="text-[13px] text-ink-mute hover:text-rust">
               DELETE

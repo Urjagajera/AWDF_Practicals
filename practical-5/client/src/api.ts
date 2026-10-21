@@ -1,8 +1,8 @@
-// In the combined landing app this points at /api/p4; on its own it uses the Vite proxy at /api.
+// In the combined landing app this points at /api/p5; on its own it uses the Vite proxy at /api.
 export const BASE_URL: string = import.meta.env.VITE_P5_API_URL ?? '/api';
 
 export interface Task {
-  id: number;
+  _id: string;
   title: string;
   description: string;
   completed: boolean;

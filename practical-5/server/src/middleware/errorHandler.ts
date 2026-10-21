@@ -1,12 +1,24 @@
 import type { ErrorRequestHandler } from 'express';
+import { Error as MongooseError } from 'mongoose';
 
 /**
  * Global error handler — registered last, after every route.
- * Express recognises it by its four arguments. The stack trace stays in the
- * server log; the client only gets a generic message.
+ * Mongoose validation and cast errors become structured 400 responses; anything else is a 500
+ * whose stack trace stays in the server log.
  */
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  if (err instanceof MongooseError.ValidationError) {
+    const fields = Object.fromEntries(Object.entries(err.errors).map(([path, e]) => [path, e.message]));
+    return res.status(400).json({ error: 'Validation failed', fields });
+  }
+  if (err instanceof MongooseError.CastError) {
+    return res.status(400).json({ error: `Invalid value for ${err.path}`, value: err.value });
+  }
+  // express.json() sets status 400 on malformed JSON bodies.
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Request body is not valid JSON' });
+  }
+
   console.error(err.stack);
-  const status = typeof err.status === 'number' ? err.status : 500;
-  res.status(status).json({ error: status === 500 ? 'Something went wrong' : err.message });
+  res.status(500).json({ error: 'Something went wrong' });
 };

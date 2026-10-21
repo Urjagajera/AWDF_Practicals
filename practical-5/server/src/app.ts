@@ -3,6 +3,10 @@ import { logger } from './middleware/logger';
 import { notFound } from './middleware/notFound';
 import { errorHandler } from './middleware/errorHandler';
 import taskRoutes from './routes/tasks';
+import { db } from './db';
+
+/** Closes this practical's MongoDB connection (used by tests and scripts). */
+export const closeDb = () => db.close();
 
 /** Builds the app without listening, so server.ts and the combined repo server can both use it. */
 export function createApp() {

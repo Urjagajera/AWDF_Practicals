@@ -11,7 +11,7 @@ const checks: Check[] = [
   { label: 'POST without a title', expect: 400, run: () => call('POST', '/tasks', { description: 'no title' }) },
   { label: 'POST as text/plain', expect: 415, run: () => call('POST', '/tasks', 'title=hi', { contentType: 'text/plain' }) },
   { label: 'PUT /tasks/abc', expect: 400, run: () => call('PUT', '/tasks/abc', { completed: true }) },
-  { label: 'DELETE /tasks/9999', expect: 404, run: () => call('DELETE', '/tasks/9999') },
+  { label: 'DELETE unknown ObjectId', expect: 404, run: () => call('DELETE', '/tasks/000000000000000000000000') },
   { label: 'GET /unknown-route', expect: 404, run: () => call('GET', '/unknown-route') },
   { label: 'GET /boom (thrown error)', expect: 500, run: () => call('GET', '/boom') },
 ];
