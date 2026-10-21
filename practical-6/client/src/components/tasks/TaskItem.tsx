@@ -3,12 +3,14 @@ import { PRIORITIES, type Priority, type Task, type TaskInput } from '../../api'
 
 interface TaskItemProps {
   task: Task;
+  /** Shown optimistically, not yet confirmed by the server: no actions until it is. */
+  pending?: boolean;
   onUpdate: (id: string, input: TaskInput) => Promise<void>;
   onDelete: (task: Task) => Promise<void>;
 }
 
 /** One task row. Keeps its own busy/error state so each action reports independently. */
-export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
+export default function TaskItem({ task, pending = false, onUpdate, onDelete }: TaskItemProps) {
   const [busy, setBusy] = useState<null | 'saving' | 'deleting'>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -41,15 +43,16 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     setEditing(true);
   };
 
+  const locked = busy !== null || pending;
   const field = 'w-full rounded-lg border border-line bg-paper px-3 py-2 text-[14.5px] outline-none focus:border-rust';
 
   return (
-    <li className={`px-5 py-4 transition ${busy ? 'opacity-60' : ''}`}>
+    <li className={`px-5 py-4 transition ${busy || pending ? 'opacity-60' : ''}`} aria-busy={busy !== null || pending}>
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
           checked={task.completed}
-          disabled={busy !== null}
+          disabled={locked}
           onChange={() => run('saving', () => onUpdate(task._id, { completed: !task.completed }))}
           aria-label={`Mark "${task.title}" ${task.completed ? 'not done' : 'done'}`}
           className="mt-1.5 h-4 w-4 shrink-0 accent-[rgb(var(--rust))]"
@@ -67,7 +70,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
               ))}
             </select>
             <div className="flex gap-2">
-              <button type="button" onClick={save} disabled={busy !== null} className="rounded-lg bg-ink px-3.5 py-1.5 text-[13.5px] font-semibold text-paper hover:bg-rust hover:text-rust-ink">
+              <button type="button" onClick={save} disabled={locked} className="rounded-lg bg-ink px-3.5 py-1.5 text-[13.5px] font-semibold text-paper hover:bg-rust hover:text-rust-ink">
                 {busy === 'saving' ? 'Saving…' : 'Save'}
               </button>
               <button type="button" onClick={() => setEditing(false)} className="rounded-lg px-3 py-1.5 text-[13.5px] text-ink-soft hover:bg-paper-sunk">
@@ -83,20 +86,20 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
               <span className={`rounded px-1.5 py-px font-mono uppercase ${task.priority === 'high' ? 'bg-rust-soft text-rust' : 'bg-paper-sunk'}`}>
                 {task.priority}
               </span>
-              <span>{new Date(task.createdAt).toLocaleString()}</span>
+              <span>{pending ? 'Saving…' : new Date(task.createdAt).toLocaleString()}</span>
             </p>
           </div>
         )}
 
         {!editing && (
           <div className="flex shrink-0 gap-1">
-            <button type="button" onClick={startEdit} disabled={busy !== null} className="rounded-lg px-2.5 py-1.5 text-[13px] text-ink-soft hover:bg-paper-sunk hover:text-ink">
+            <button type="button" onClick={startEdit} disabled={locked} className="rounded-lg px-2.5 py-1.5 text-[13px] text-ink-soft hover:bg-paper-sunk hover:text-ink">
               Edit
             </button>
             <button
               type="button"
               onClick={() => run('deleting', () => onDelete(task))}
-              disabled={busy !== null}
+              disabled={locked}
               className="rounded-lg px-2.5 py-1.5 text-[13px] text-ink-soft hover:bg-rust-soft hover:text-rust"
             >
               {busy === 'deleting' ? 'Deleting…' : 'Delete'}

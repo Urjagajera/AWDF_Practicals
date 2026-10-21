@@ -13,4 +13,5 @@ export const registry: Record<number, Loader> = {
   3: () => import('../../practical-3/client/src/App'),
   4: () => import('../../practical-4/client/src/App'),
   5: () => import('../../practical-5/client/src/App'),
+  6: () => import('../../practical-6/client/src/App'),
 };

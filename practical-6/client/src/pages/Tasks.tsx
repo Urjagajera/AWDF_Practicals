@@ -1,15 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useToast } from '../components/Toast';
 import TaskForm from '../components/tasks/TaskForm';
 import TaskItem from '../components/tasks/TaskItem';
 import * as api from '../api';
 import type { Task, TaskInput } from '../api';
 
+/** A task shown before the server has confirmed it (optimistic create). */
+export type ListTask = Task & { pending?: boolean };
+
 export default function Tasks() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<ListTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<Task | null>(null);
+  const confirmResolver = useRef<(ok: boolean) => void>();
+  const toast = useToast();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -28,21 +36,64 @@ export default function Tasks() {
     load();
   }, [load]);
 
-  // Local state changes only after the server confirms each write,
-  // and always uses the document the server sent back.
+  // Optimistic create: the task appears at once, marked pending, and is swapped for the
+  // server's document when it answers — or removed again if the server rejects it.
   const create = async (input: TaskInput) => {
-    const created = await api.createTask(input);
-    setTasks((prev) => [created, ...prev]);
+    const tempId = `temp-${Date.now()}`;
+    const temp: ListTask = {
+      _id: tempId,
+      title: input.title?.trim() ?? '',
+      description: input.description ?? '',
+      completed: false,
+      priority: input.priority ?? 'medium',
+      createdAt: new Date().toISOString(),
+      pending: true,
+    };
+    setTasks((prev) => [temp, ...prev]);
+    try {
+      const created = await api.createTask(input);
+      setTasks((prev) => prev.map((t) => (t._id === tempId ? created : t)));
+      toast('success', `Added “${created.title}”`);
+    } catch (err) {
+      setTasks((prev) => prev.filter((t) => t._id !== tempId));
+      toast('error', `Couldn’t add the task: ${(err as Error).message}`);
+      throw err;
+    }
   };
 
+  // Updates and deletes wait for the server, then use its response.
   const update = async (id: string, input: TaskInput) => {
-    const updated = await api.updateTask(id, input);
-    setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
+    try {
+      const updated = await api.updateTask(id, input);
+      setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
+      toast('success', input.completed === undefined ? 'Task saved' : updated.completed ? 'Marked as done' : 'Marked as open');
+    } catch (err) {
+      toast('error', `Couldn’t save: ${(err as Error).message}`);
+      throw err;
+    }
+  };
+
+  const askToDelete = (task: Task) =>
+    new Promise<boolean>((resolve) => {
+      confirmResolver.current = resolve;
+      setToDelete(task);
+    });
+
+  const closeConfirm = (ok: boolean) => {
+    setToDelete(null);
+    confirmResolver.current?.(ok);
   };
 
   const remove = async (task: Task) => {
-    await api.deleteTask(task._id);
-    setTasks((prev) => prev.filter((t) => t._id !== task._id));
+    if (!(await askToDelete(task))) return;
+    try {
+      await api.deleteTask(task._id);
+      setTasks((prev) => prev.filter((t) => t._id !== task._id));
+      toast('success', `Deleted “${task.title}”`);
+    } catch (err) {
+      toast('error', `Couldn’t delete: ${(err as Error).message}`);
+      throw err;
+    }
   };
 
   const open = tasks.filter((t) => !t.completed).length;
@@ -80,12 +131,20 @@ export default function Tasks() {
           ) : (
             <ul className="divide-y divide-line">
               {tasks.map((t) => (
-                <TaskItem key={t._id} task={t} onUpdate={update} onDelete={remove} />
+                <TaskItem key={t._id} task={t} pending={t.pending} onUpdate={update} onDelete={remove} />
               ))}
             </ul>
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        title="Delete this task?"
+        message={toDelete ? `“${toDelete.title}” will be removed from the database. This can’t be undone.` : ''}
+        onConfirm={() => closeConfirm(true)}
+        onCancel={() => closeConfirm(false)}
+      />
     </section>
   );
 }
