@@ -10,4 +10,5 @@ type Loader = () => Promise<{ default: ComponentType }>;
 export const registry: Record<number, Loader> = {
   1: () => import('../../practical-1/client/src/App'),
   2: () => import('../../practical-2/client/src/App'),
+  3: () => import('../../practical-3/client/src/App'),
 };
