@@ -3,10 +3,13 @@ import ThemeToggle from './ThemeToggle';
 
 export const REPO_URL = 'https://github.com/Urjagajera/AWDF_Practicals';
 
-/** Sticky bar shared by the landing pages and the practical host. Uses plain anchors so it works outside any router. */
-export default function TopBar({ children }: { children?: ReactNode }) {
+/**
+ * Bar shared by the landing pages and the practical host. Uses plain anchors so it works outside any router.
+ * Not sticky above a practical, since practicals pin their own navigation to the top.
+ */
+export default function TopBar({ children, sticky = true }: { children?: ReactNode; sticky?: boolean }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur">
+    <header className={`${sticky ? 'sticky top-0' : 'relative'} z-30 border-b border-line bg-paper/85 backdrop-blur`}>
       <div className="mx-auto flex h-14 w-[min(1160px,100%-32px)] items-center gap-4">
         <a href="/" className="flex items-center gap-2.5 no-underline">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink font-mono text-[12px] font-semibold text-paper">

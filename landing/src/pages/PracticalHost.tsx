@@ -26,7 +26,7 @@ export default function PracticalHost({ n }: { n: number }) {
 
   return (
     <>
-      <TopBar>
+      <TopBar sticky={false}>
         <div className="flex min-w-0 items-center gap-3 border-l border-line pl-4 text-[13.5px]">
           <span className="font-mono text-rust">P{pad(n)}</span>
           <span className="hidden truncate text-ink-soft md:inline">{info.title}</span>
