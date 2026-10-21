@@ -30,3 +30,48 @@ First visit to `/` (cold):
 
 Every page and the whole chart library are downloaded before anything appears, even on the Home page,
 which uses none of them. Slow 3G estimate for the JS alone: 120.74 KB ÷ 50 KB/s ≈ **2.4 s**.
+
+## After — route-based code splitting
+
+`React.lazy()` for Projects, Tasks, Login, Contact and NotFound; Home stays in the main bundle. One
+`<Suspense fallback={<PageFallback />}>` wraps the `<Routes>` block.
+
+```
+dist/index.html                       0.81 kB │ gzip:  0.46 kB
+dist/assets/index-g77wH53f.css       17.69 kB │ gzip:  4.46 kB
+dist/assets/NotFound-ijNL8_J0.js      0.73 kB │ gzip:  0.43 kB
+dist/assets/ProjectsPage-DYzCnVNo.js  1.34 kB │ gzip:  0.62 kB
+dist/assets/Login-IHL-WbZY.js         2.86 kB │ gzip:  1.22 kB
+dist/assets/Contact-CjnFG59R.js       3.18 kB │ gzip:  1.34 kB
+dist/assets/Tasks-Ut8XypiR.js       173.88 kB │ gzip: 60.68 kB
+dist/assets/index-BhdKm2-o.js       180.51 kB │ gzip: 59.34 kB
+```
+
+First visit to `/` (cold, fresh tab):
+
+| JS files downloaded | JS size | DOMContentLoaded |
+|---|---|---|
+| `index-BhdKm2-o.js` | 176.3 KB | 59.9 ms |
+
+Chunks then load only when their route is opened (Network / resource timing in the same tab):
+
+| Action | JS loaded so far |
+|---|---|
+| open `/` | `index` |
+| click **Projects** | `index`, `ProjectsPage` |
+| click **Contact** | `index`, `ProjectsPage`, `Contact` |
+| click **Log in** | … + `Login` (13.2 ms); the `PageFallback` skeleton appeared 5.3 ms after the click |
+
+The Tasks chunk is still large (174 kB) because Chart.js is bundled with the Tasks page — handled next.
+
+## Comparison so far
+
+| | Before | After route splitting |
+|---|---|---|
+| JS needed for the first page | 360.31 kB (120.74 kB gzip) | 180.51 kB (59.34 kB gzip) — **−50 %** |
+| Slow 3G estimate for that JS | ≈ 2.4 s | ≈ 1.2 s |
+| DOMContentLoaded, cold, localhost | 175.7 ms | 59.9 ms |
+
+The localhost timings are single cold samples and vary from run to run; the byte counts are exact and are
+the reliable part of the comparison. Total code over a full session is about the same — lazy loading
+changes *when* code is downloaded, not *how much*.
