@@ -38,20 +38,27 @@ npm run dev
 
 Each practical can also be run on its own exactly as its lab sheet describes — see its README.
 
+Other entry points:
+
+- **Practical 11** runs the full stack in Docker: `cd practical-11 && docker-compose up --build`.
+- **Practical 12**'s tests run on every push to `main` (badge above); locally: `npm test -w practical-12/server`.
+- **Practical 13** needs a Gemini key in `server/.env` (`GEMINI_API_KEY`); without one the AI button shows a
+  fallback message and everything else works.
+
 ## Practicals
 
 | # | Practical | Track |
 |---|-----------|-------|
-| 1 | Introduction to React and Component Architecture | Frontend |
-| 2 | State Management and Routing in React | Frontend |
-| 3 | API Integration and Data Rendering in React | Frontend |
-| 4 | Building a RESTful API with Node.js and Express | Backend |
-| 5 | MongoDB Integration and Schema Design with Mongoose | Backend |
-| 6 | Full Stack Integration: React + Node + MongoDB | Full stack |
-| 7 | Authentication and Middleware Pipeline | Backend |
-| 8 | Performance Optimization and Lazy Loading in React | Frontend |
-| 9 | In-Memory Caching and Query Optimization | Backend |
-| 10 | Asynchronous Processing with Event-Driven Architecture | Backend |
-| 11 | Containerization with Docker and Docker Compose | DevOps |
-| 12 | CI/CD Pipeline with GitHub Actions | DevOps |
-| 13 | AI API Integration into a Web Application | Full stack |
+| 1 | [Introduction to React and Component Architecture](practical-1/) | Frontend |
+| 2 | [State Management and Routing in React](practical-2/) | Frontend |
+| 3 | [API Integration and Data Rendering in React](practical-3/) | Frontend |
+| 4 | [Building a RESTful API with Node.js and Express](practical-4/) | Backend |
+| 5 | [MongoDB Integration and Schema Design with Mongoose](practical-5/) | Backend |
+| 6 | [Full Stack Integration: React + Node + MongoDB](practical-6/) | Full stack |
+| 7 | [Authentication and Middleware Pipeline](practical-7/) | Backend |
+| 8 | [Performance Optimization and Lazy Loading in React](practical-8/) | Frontend |
+| 9 | [In-Memory Caching and Query Optimization](practical-9/) | Backend |
+| 10 | [Asynchronous Processing with Event-Driven Architecture](practical-10/) | Backend |
+| 11 | [Containerization with Docker and Docker Compose](practical-11/) | DevOps |
+| 12 | [CI/CD Pipeline with GitHub Actions](practical-12/) | DevOps |
+| 13 | [AI API Integration into a Web Application](practical-13/) | Full stack |
