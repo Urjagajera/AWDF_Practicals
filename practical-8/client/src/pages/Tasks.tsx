@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useToast } from '../components/Toast';
 import TaskForm from '../components/tasks/TaskForm';
 import TaskItem from '../components/tasks/TaskItem';
-import TaskInsights from '../components/tasks/TaskInsights';
+import Delayed from '../components/Delayed';
 import * as api from '../api';
 import type { Task, TaskInput } from '../api';
+
+// Chart.js is ~170 kB. It is only downloaded when someone opens the charts, not with the page.
+const TaskInsights = lazy(() => import('../components/tasks/TaskInsights'));
 
 /** A task shown before the server has confirmed it (optimistic create). */
 export type ListTask = Task & { pending?: boolean };
@@ -64,7 +67,9 @@ export default function Tasks() {
   };
 
   // Updates and deletes wait for the server, then use its response.
-  const update = async (id: string, input: TaskInput) => {
+  // useCallback keeps these functions identical between renders, so the memoised
+  // TaskItem rows only re-render when their own task changes.
+  const update = useCallback(async (id: string, input: TaskInput) => {
     try {
       const updated = await api.updateTask(id, input);
       setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
@@ -73,20 +78,23 @@ export default function Tasks() {
       toast('error', `Couldn’t save: ${(err as Error).message}`);
       throw err;
     }
-  };
+  }, [toast]);
 
-  const askToDelete = (task: Task) =>
-    new Promise<boolean>((resolve) => {
-      confirmResolver.current = resolve;
-      setToDelete(task);
-    });
+  const askToDelete = useCallback(
+    (task: Task) =>
+      new Promise<boolean>((resolve) => {
+        confirmResolver.current = resolve;
+        setToDelete(task);
+      }),
+    [],
+  );
 
   const closeConfirm = (ok: boolean) => {
     setToDelete(null);
     confirmResolver.current?.(ok);
   };
 
-  const remove = async (task: Task) => {
+  const remove = useCallback(async (task: Task) => {
     if (!(await askToDelete(task))) return;
     try {
       await api.deleteTask(task._id);
@@ -96,7 +104,7 @@ export default function Tasks() {
       toast('error', `Couldn’t delete: ${(err as Error).message}`);
       throw err;
     }
-  };
+  }, [askToDelete, toast]);
 
   const open = tasks.filter((t) => !t.completed).length;
 
@@ -155,7 +163,17 @@ export default function Tasks() {
           </header>
           {showInsights && (
             <div className="border-t border-line">
-              <TaskInsights tasks={tasks} />
+              <Suspense
+                fallback={
+                  <Delayed>
+                    <div className="px-5">
+                      <Spinner label="Loading charts…" />
+                    </div>
+                  </Delayed>
+                }
+              >
+                <TaskInsights tasks={tasks} />
+              </Suspense>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { PRIORITIES, type Priority, type Task, type TaskInput } from '../../api';
 
 interface TaskItemProps {
@@ -10,7 +10,7 @@ interface TaskItemProps {
 }
 
 /** One task row. Keeps its own busy/error state so each action reports independently. */
-export default function TaskItem({ task, pending = false, onUpdate, onDelete }: TaskItemProps) {
+function TaskItem({ task, pending = false, onUpdate, onDelete }: TaskItemProps) {
   const [busy, setBusy] = useState<null | 'saving' | 'deleting'>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -115,3 +115,6 @@ export default function TaskItem({ task, pending = false, onUpdate, onDelete }: 
     </li>
   );
 }
+
+// Memoised: a row re-renders only when its own props change, not whenever the list does.
+export default memo(TaskItem);

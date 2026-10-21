@@ -75,3 +75,48 @@ The Tasks chunk is still large (174 kB) because Chart.js is bundled with the Tas
 The localhost timings are single cold samples and vary from run to run; the byte counts are exact and are
 the reliable part of the comparison. Total code over a full session is about the same — lazy loading
 changes *when* code is downloaded, not *how much*.
+
+## After — chart library loaded on demand
+
+`TaskInsights` (Chart.js + react-chartjs-2) is now `lazy()` too, with its own `<Suspense>`, so it downloads
+only when **Show charts** is clicked.
+
+```
+dist/assets/Tasks-DewvqOZM.js          9.88 kB │ gzip:  3.36 kB   (was 173.88 kB)
+dist/assets/TaskInsights-BHY5hrNt.js 164.52 kB │ gzip: 57.39 kB   (new, on demand)
+dist/assets/index-BReWwUhK.js        180.73 kB │ gzip: 59.41 kB
+```
+
+Browser check (production preview, logged in): opening `/tasks` loads `index`, `Login`, `Tasks` — no chart
+code. Clicking **Show charts** adds `TaskInsights-BHY5hrNt.js` (20.0 ms) and both charts render.
+
+## Minimum-delay fallback
+
+Both Suspense fallbacks are wrapped in `<Delayed ms={300}>`, which renders nothing for 300 ms. Before the
+change the page skeleton appeared 5.3 ms after clicking a link and vanished ~8 ms later (a flicker). After
+the change, loading the 20 ms chart chunk showed no loading state at all; on a throttled connection the
+spinner/skeleton still appears once 300 ms have passed.
+
+## Profiler — an unnecessary re-render
+
+Each `TaskItem` render was counted (temporary counter, React 18 StrictMode dev build, 8 tasks):
+
+| Action | TaskItem renders before | after `memo` + `useCallback` |
+|---|---|---|
+| Toggle one task's checkbox | 18 | 4 |
+| Click **Show charts** (no task changes) | 16 | 0 |
+
+Cause: `Tasks` re-created its `update` and `remove` functions on every render and passed them to every row,
+so any state change in the page (opening the charts, a toast, one task updating) re-rendered all rows.
+Fix: `TaskItem` is wrapped in `React.memo`, and `update` / `remove` / `askToDelete` are wrapped in
+`useCallback`, so a row re-renders only when its own `task` changes. (StrictMode renders twice in
+development, so the absolute numbers are doubled; the ratio is what matters.)
+
+## Final comparison
+
+| | Before | After |
+|---|---|---|
+| JS for the first page (`/`) | 360.31 kB · 120.74 kB gzip | 180.73 kB · 59.41 kB gzip (**−51 %**) |
+| JS for `/tasks` (without charts) | same 360.31 kB bundle | index + Tasks + Login ≈ 193 kB |
+| Chart.js | always downloaded | only after **Show charts** |
+| Slow 3G estimate, first page JS | ≈ 2.4 s | ≈ 1.2 s |

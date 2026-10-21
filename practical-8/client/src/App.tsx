@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import PageFallback from './components/PageFallback';
+import Delayed from './components/Delayed';
 import ThemeToggle from './components/ThemeToggle';
 import AccountMenu from './components/AccountMenu';
 import { ToastProvider } from './components/Toast';
@@ -32,7 +33,13 @@ export default function App() {
             </div>
           </NavBar>
           {/* Suspense wraps only the routes, so the nav and footer stay on screen while a page loads. */}
-          <Suspense fallback={<PageFallback />}>
+          <Suspense
+            fallback={
+              <Delayed>
+                <PageFallback />
+              </Delayed>
+            }
+          >
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/projects" element={<ProjectsPage />} />
