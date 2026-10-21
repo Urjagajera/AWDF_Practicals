@@ -10,6 +10,9 @@ services:
     restart: unless-stopped
     ports:
       - "${MONGO_PORT:-27018}:27017"
+    volumes:
+      # Named volume: the database files outlive the container (down / up, rebuilds).
+      - mongo-data:/data/db
     networks:
       - app-network
 
@@ -42,3 +45,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mongo-data:

@@ -1,14 +1,24 @@
-FROM node:18
+# Stage 1 — build: compile TypeScript with the full dependency set
+FROM node:18 AS build
 
 WORKDIR /app
 
-# Dependencies first, so this layer is reused when only source files change.
 COPY package*.json ./
 RUN npm install
 
 COPY . .
-# TypeScript → JavaScript in dist/
 RUN npm run build
+
+# Stage 2 — run: slim image, production dependencies and compiled JavaScript only
+FROM node:18-alpine
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY package*.json ./
+RUN npm install --omit=dev
+
+COPY --from=build /app/dist ./dist
 
 EXPOSE 5000
 CMD ["node", "dist/server.js"]
