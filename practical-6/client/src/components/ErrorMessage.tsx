@@ -6,7 +6,7 @@ interface ErrorMessageProps {
 export default function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
   return (
     <div role="alert" className="rounded-2xl border border-rust/40 bg-rust-soft/60 p-5">
-      <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-rust">Couldn’t load repositories</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-rust">Something went wrong</p>
       <p className="mt-2 text-ink-soft">{message}</p>
       {onRetry && (
         <button

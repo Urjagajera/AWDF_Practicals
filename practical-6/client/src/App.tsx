@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import ProjectsPage from './pages/ProjectsPage';
 import Contact from './pages/Contact';
+import Tasks from './pages/Tasks';
 import NotFound from './pages/NotFound';
 import ThemeToggle from './components/ThemeToggle';
 import { contacts, profile } from './data/profile';
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/tasks" element={<Tasks />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
