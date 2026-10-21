@@ -5,7 +5,25 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      # The repo is an npm workspace, so dependencies are installed once at the root.
+      - run: npm install
+
+      - name: Lint Practical 12 server
+        run: npm run lint -w practical-12/server
+
   build-and-test:
+    # Tests only run once the code passes lint.
+    needs: lint
     runs-on: ubuntu-latest
 
     # The API tests need a real MongoDB; GitHub starts this container next to the job.
@@ -23,8 +41,10 @@ jobs:
           node-version: 18
           cache: npm
 
-      # The repo is an npm workspace, so dependencies are installed once at the root.
       - run: npm install
+
+      - name: Type-check
+        run: npm run typecheck -w practical-12/server
 
       - name: Run Practical 12 API tests
         run: npm test -w practical-12/server

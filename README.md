@@ -1,5 +1,7 @@
 # AWDF Practicals — ITUE301
 
+[![CI Pipeline](https://github.com/Urjagajera/AWDF_Practicals/actions/workflows/ci.yml/badge.svg)](https://github.com/Urjagajera/AWDF_Practicals/actions/workflows/ci.yml)
+
 Advanced Web Development Frameworks, B.Tech CSE Semester 5, CSPIT, CHARUSAT.
 **Urja Gajera · 24CS021**
 
