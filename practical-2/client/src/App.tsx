@@ -1,26 +1,20 @@
+import { Route, Routes } from 'react-router-dom';
 import NavBar from './components/NavBar';
-import Header from './components/Header';
-import About from './components/About';
-import Skills from './components/Skills';
-import Projects from './components/Projects';
 import Footer from './components/Footer';
-import { contacts, profile, projects, skills } from './data/profile';
-
-const sections = [
-  { id: 'about', label: 'About' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' },
-];
+import Home from './pages/Home';
+import ProjectsPage from './pages/ProjectsPage';
+import Contact from './pages/Contact';
+import { contacts, profile } from './data/profile';
 
 export default function App() {
   return (
     <div className="mx-auto w-[min(1040px,100%-32px)]">
-      <NavBar sections={sections} />
-      <Header name={profile.name} role={profile.role} focus={profile.focus} themeColor="rgb(var(--rust))" />
-      <About bio={profile.bio} education={profile.education} internship={profile.internship} />
-      <Skills skillList={skills} />
-      <Projects projects={projects} />
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
       <Footer name={profile.name} links={contacts} />
     </div>
   );
