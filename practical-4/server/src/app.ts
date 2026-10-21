@@ -1,5 +1,6 @@
 import express from 'express';
 import { logger } from './middleware/logger';
+import { notFound } from './middleware/notFound';
 import { errorHandler } from './middleware/errorHandler';
 import taskRoutes from './routes/tasks';
 
@@ -7,7 +8,7 @@ import taskRoutes from './routes/tasks';
 export function createApp() {
   const app = express();
 
-  // 1. Parse JSON bodies, 2. log every request.
+  // Pipeline: parse JSON → log → routes → 404 → error handler.
   app.use(express.json());
   app.use(logger);
 
@@ -22,6 +23,8 @@ export function createApp() {
     next(new Error('Deliberate test error'));
   });
 
+  // No route matched.
+  app.use(notFound);
   // Last: the global error handler.
   app.use(errorHandler);
   return app;

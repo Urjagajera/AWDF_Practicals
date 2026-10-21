@@ -7,5 +7,7 @@ export default defineConfig({
     port: 5173,
     // Practical clients live in ../practical-*/client, outside this folder.
     fs: { allow: ['..'] },
+    // The combined API server (repo-root server/) mounts each practical under /api/pN.
+    proxy: { '/api': 'http://localhost:4000' },
   },
 });
